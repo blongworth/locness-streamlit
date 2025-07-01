@@ -1,5 +1,6 @@
 import streamlit as st
 import sqlite3
+from sample_data import create_sample_database, add_sample_row
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -20,59 +21,6 @@ if 'last_update' not in st.session_state:
     st.session_state.last_update = datetime.now()
 if 'data_cache' not in st.session_state:
     st.session_state.data_cache = pd.DataFrame()
-
-def create_sample_database():
-    """Create a sample SQLite database with oceanographic data"""
-    conn = sqlite3.connect('oceanographic_data.db')
-    cursor = conn.cursor()
-    
-    # Create table
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS sensor_data (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp DATETIME,
-        lat REAL,
-        lon REAL,
-        temp REAL,
-        salinity REAL,
-        rhodamine REAL,
-        pH REAL
-    )
-    ''')
-    
-    # Generate sample data if table is empty
-    cursor.execute('SELECT COUNT(*) FROM sensor_data')
-    if cursor.fetchone()[0] == 0:
-        # Generate 1000 sample records over the last 24 hours
-        base_time = datetime.now() - timedelta(hours=24)
-        
-        # Simulate a moving platform (e.g., research vessel)
-        base_lat, base_lon = 42.3601, -71.0589  # Boston area
-        
-        sample_data = []
-        for i in range(1000):
-            timestamp = base_time + timedelta(minutes=i * 1.44)  # ~1000 points over 24 hours
-            
-            # Simulate movement
-            lat = base_lat + np.sin(i * 0.01) * 0.1 + np.random.normal(0, 0.01)
-            lon = base_lon + np.cos(i * 0.01) * 0.1 + np.random.normal(0, 0.01)
-            
-            # Simulate realistic oceanographic data
-            temp = 15 + 5 * np.sin(i * 0.02) + np.random.normal(0, 0.5)
-            salinity = 35 + 2 * np.sin(i * 0.015) + np.random.normal(0, 0.2)
-            rhodamine = max(0, 10 + 5 * np.sin(i * 0.03) + np.random.normal(0, 1))
-            ph = 8.1 + 0.3 * np.sin(i * 0.025) + np.random.normal(0, 0.05)
-            
-            sample_data.append((timestamp, lat, lon, temp, salinity, rhodamine, ph))
-        
-        cursor.executemany('''
-        INSERT INTO sensor_data (timestamp, lat, lon, temp, salinity, rhodamine, pH)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', sample_data)
-        
-        conn.commit()
-    
-    conn.close()
 
 def get_data_from_db(since_timestamp=None):
     """Fetch data from SQLite database"""
@@ -210,8 +158,15 @@ def create_map_plot(df):
     
     return fig
 
+
 # Initialize database
 create_sample_database()
+
+# Add a new sample row at 1Hz (if enabled)
+st.sidebar.subheader("Sample Data Generation")
+enable_live_sample = st.sidebar.checkbox("Add new sample data at 1Hz (simulated)", value=False)
+if enable_live_sample:
+    add_sample_row()
 
 # Streamlit UI
 st.title("🌊 Oceanographic Data Visualizer")
