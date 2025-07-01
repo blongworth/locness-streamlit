@@ -113,7 +113,7 @@ def create_map_plot(df):
     fig = go.Figure()
     
     # Add track line
-    fig.add_trace(go.Scattermapbox(
+    fig.add_trace(go.Scattermap(
         lat=recent_data['lat'],
         lon=recent_data['lon'],
         mode='lines',
@@ -125,7 +125,7 @@ def create_map_plot(df):
     # Add latest position
     if not df.empty:
         latest = df.iloc[-1]
-        fig.add_trace(go.Scattermapbox(
+        fig.add_trace(go.Scattermap(
             lat=[latest['lat']],
             lon=[latest['lon']],
             mode='markers',
@@ -147,7 +147,7 @@ def create_map_plot(df):
         center_lat, center_lon = 42.3601, -71.0589
     
     fig.update_layout(
-        mapbox=dict(
+        map=dict(
             style="open-street-map",
             center=dict(lat=center_lat, lon=center_lon),
             zoom=12
@@ -285,9 +285,12 @@ else:
 with status_container:
     if not df.empty:
         st.success(f"✅ Data loaded: {len(df)} records")
-        st.write(f"**Last update:** {st.session_state.last_update.strftime('%H:%M:%S')}")
-        st.write(f"**Latest data:** {df.index[-1].strftime('%H:%M:%S')}")
-        st.write(f"**Next update in:** {max(0, update_frequency - int((datetime.now() - st.session_state.last_update).total_seconds()))} seconds")
+        st.markdown(
+            f"✅ Data loaded: {len(df)} records  \n"
+            f"**Last update:** {st.session_state.last_update.strftime('%H:%M:%S')}  \n"
+            f"**Latest data:** {df.index[-1].strftime('%H:%M:%S')}  \n"
+            f"**Next update in:** {max(0, update_frequency - int((datetime.now() - st.session_state.last_update).total_seconds()))} seconds"
+        )
     else:
         st.warning("⚠️ No data available")
 
