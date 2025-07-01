@@ -113,7 +113,7 @@ def create_map_plot(df):
     fig = go.Figure()
     
     # Add track line
-    fig.add_trace(go.Scattermapbox(
+    fig.add_trace(go.Scattermap(
         lat=recent_data['lat'],
         lon=recent_data['lon'],
         mode='lines',
@@ -125,7 +125,7 @@ def create_map_plot(df):
     # Add latest position
     if not df.empty:
         latest = df.iloc[-1]
-        fig.add_trace(go.Scattermapbox(
+        fig.add_trace(go.Scattermap(
             lat=[latest['lat']],
             lon=[latest['lon']],
             mode='markers',
@@ -147,7 +147,7 @@ def create_map_plot(df):
         center_lat, center_lon = 42.3601, -71.0589
     
     fig.update_layout(
-        mapbox=dict(
+        map=dict(
             style="open-street-map",
             center=dict(lat=center_lat, lon=center_lon),
             zoom=12
@@ -233,6 +233,12 @@ col1, col2 = st.columns([2, 1])
 with col2:
     st.subheader("Data Status")
     status_container = st.empty()
+    # Show last update timestamp and row count
+    if not st.session_state.data_cache.empty:
+        st.markdown(f"**Last update:** {st.session_state.last_update.strftime('%Y-%m-%d %H:%M:%S')}")
+        st.markdown(f"**Rows in data:** {len(st.session_state.data_cache)}")
+    else:
+        st.markdown("**No data loaded yet.**")
 
 with col1:
     st.subheader("Controls")
@@ -242,43 +248,32 @@ map_container = st.empty()
 plot_container = st.empty()
 stats_container = st.empty()
 
-# Initialize or update data
-time_since_update = (datetime.now() - st.session_state.last_update).total_seconds()
 
-if auto_refresh and time_since_update >= update_frequency:
-    # Fetch new data
+# --- Auto-refresh logic using Streamlit's experimental_rerun and timer ---
+
+
+def refresh_data():
     cutoff_time = datetime.now() - timedelta(hours=time_range_hours)
     df = get_data_from_db()
-    
-    # Filter by time range
     if not df.empty:
         df = df[df.index >= cutoff_time]
-    
-    # Apply resampling if selected
     if resample_options[selected_resample] is not None and not df.empty:
         df = resample_data(df, resample_options[selected_resample])
-    
     st.session_state.data_cache = df
     st.session_state.last_update = datetime.now()
-    
-    # Force rerun to update display
-    st.rerun()
+    return df
+
+if auto_refresh:
+    # Use Streamlit's built-in timer to trigger rerun
+    import streamlit as _st
+    _st.experimental_set_query_params(_refresh=str(datetime.now().timestamp()))
+    df = refresh_data()
+    # Add a short sleep to avoid infinite rerun loop
+    time.sleep(update_frequency)
+    st.experimental_rerun()
 elif st.session_state.data_cache.empty:
-    # Initial load - fetch data even if auto-refresh is off
-    cutoff_time = datetime.now() - timedelta(hours=time_range_hours)
-    df = get_data_from_db()
-    
-    # Filter by time range
-    if not df.empty:
-        df = df[df.index >= cutoff_time]
-    
-    # Apply resampling if selected
-    if resample_options[selected_resample] is not None and not df.empty:
-        df = resample_data(df, resample_options[selected_resample])
-    
-    st.session_state.data_cache = df
+    df = refresh_data()
 else:
-    # Use cached data
     df = st.session_state.data_cache
 
 # Update status
