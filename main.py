@@ -1,6 +1,6 @@
 import streamlit as st
 import sqlite3
-from sample_data import create_sample_database, add_sample_row
+from sample_data import add_sample_row
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -180,7 +180,7 @@ def create_map_plot(df):
 
 
 # Initialize database
-create_sample_database()
+#create_sample_database()
 
 # Add a new sample row at 1Hz (if enabled)
 st.sidebar.subheader("Sample Data Generation")

@@ -2,8 +2,14 @@ import sqlite3
 from datetime import datetime, timedelta
 import numpy as np
 
-def create_sample_database(db_path='oceanographic_data.db'):
-    """Create a sample SQLite database with oceanographic data"""
+def create_sample_database(db_path='oceanographic_data.db', sample_frequency_hz=1, num_samples=1000):
+    """Create a sample SQLite database with oceanographic data
+
+    Args:
+        db_path (str): Path to the SQLite database file.
+        sample_frequency_hz (float): Frequency of samples per second.
+        num_samples (int): Number of samples to generate.
+    """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     
@@ -24,12 +30,16 @@ def create_sample_database(db_path='oceanographic_data.db'):
     # Generate sample data if table is empty
     cursor.execute('SELECT COUNT(*) FROM sensor_data')
     if cursor.fetchone()[0] == 0:
-        # Generate 1000 sample records over the last 24 hours
-        base_time = datetime.now() - timedelta(hours=24)
+        # Calculate time delta between samples
+        if sample_frequency_hz > 0:
+            delta_seconds = 1.0 / sample_frequency_hz
+        else:
+            delta_seconds = 1.0
+        base_time = datetime.now() - timedelta(seconds=delta_seconds * num_samples)
         base_lat, base_lon = 42.3601, -71.0589  # Boston area
         sample_data = []
-        for i in range(1000):
-            timestamp = base_time + timedelta(minutes=i * 1.44)
+        for i in range(num_samples):
+            timestamp = base_time + timedelta(seconds=i * delta_seconds)
             lat = base_lat + np.sin(i * 0.01) * 0.1 + np.random.normal(0, 0.01)
             lon = base_lon + np.cos(i * 0.01) * 0.1 + np.random.normal(0, 0.01)
             temp = 15 + 5 * np.sin(i * 0.02) + np.random.normal(0, 0.5)
