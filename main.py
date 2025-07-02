@@ -139,18 +139,38 @@ def create_map_plot(df):
                          f'pH: {latest["pH"]:.2f}<extra></extra>'
         ))
     
-    # Calculate center point
+    # Calculate map extent (bounding box)
     if not recent_data.empty:
-        center_lat = recent_data['lat'].mean()
-        center_lon = recent_data['lon'].mean()
+        min_lat = recent_data['lat'].min()
+        max_lat = recent_data['lat'].max()
+        min_lon = recent_data['lon'].min()
+        max_lon = recent_data['lon'].max()
+        center_lat = (min_lat + max_lat) / 2
+        center_lon = (min_lon + max_lon) / 2
+        # Estimate zoom level based on extent (simple heuristic)
+        lat_range = max_lat - min_lat
+        lon_range = max_lon - min_lon
+        max_range = max(lat_range, lon_range)
+        # The following zoom formula is a rough approximation for Mapbox
+        if max_range < 0.002:
+            zoom = 15
+        elif max_range < 0.01:
+            zoom = 13
+        elif max_range < 0.05:
+            zoom = 11
+        elif max_range < 0.2:
+            zoom = 9
+        else:
+            zoom = 7
     else:
         center_lat, center_lon = 42.3601, -71.0589
-    
+        zoom = 12
+
     fig.update_layout(
         map=dict(
             style="open-street-map",
             center=dict(lat=center_lat, lon=center_lon),
-            zoom=12
+            zoom=zoom
         ),
         height=400,
         title="Current Position and Track"
