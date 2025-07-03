@@ -57,6 +57,9 @@ coverage.xml
 # SQLite database
 *.db
 
+# DuckDB database
+*.duckdb
+
 # Streamlit cache
 .streamlit/
 

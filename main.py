@@ -1,5 +1,5 @@
 import streamlit as st
-import sqlite3
+import duckdb
 from sample_data import add_sample_row
 import pandas as pd
 import plotly.graph_objects as go
@@ -23,26 +23,22 @@ if 'data_cache' not in st.session_state:
     st.session_state.data_cache = pd.DataFrame()
 
 def get_data_from_db(since_timestamp=None):
-    """Fetch data from SQLite database"""
-    conn = sqlite3.connect('oceanographic_data.db')
-    
+    """Fetch data from DuckDB database"""
+    con = duckdb.connect('oceanographic_data.duckdb')
     if since_timestamp:
         query = '''
         SELECT * FROM sensor_data 
         WHERE timestamp > ? 
         ORDER BY timestamp
         '''
-        df = pd.read_sql_query(query, conn, params=(since_timestamp,))
+        df = con.execute(query, [since_timestamp]).df()
     else:
         query = 'SELECT * FROM sensor_data ORDER BY timestamp'
-        df = pd.read_sql_query(query, conn)
-    
-    conn.close()
-    
+        df = con.execute(query).df()
+    con.close()
     if not df.empty:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df.set_index('timestamp', inplace=True)
-    
     return df
 
 def resample_data(df, resample_freq):
