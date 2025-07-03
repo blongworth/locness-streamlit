@@ -229,8 +229,11 @@ def create_map_plot(df):
     return fig
 
 
-# Initialize database
-#create_sample_database()
+
+# Streamlit UI
+
+# Sidebar controls
+st.sidebar.header("Configuration")
 
 # Add a new sample row at 1Hz (if enabled)
 st.sidebar.subheader("Sample Data Generation")
@@ -238,12 +241,6 @@ enable_live_sample = st.sidebar.checkbox("Add new sample data at 1Hz (simulated)
 if enable_live_sample:
     add_sample_row()
 
-# Streamlit UI
-st.title("🌊 Oceanographic Data Visualizer")
-st.markdown("Real-time visualization of oceanographic sensor data")
-
-# Sidebar controls
-st.sidebar.header("Configuration")
 
 # Update frequency
 update_frequency = st.sidebar.slider(
@@ -297,16 +294,13 @@ auto_refresh = st.sidebar.checkbox("Auto-refresh", value=True)
 if st.sidebar.button("Refresh Now"):
     st.session_state.last_update = datetime.now() - timedelta(seconds=update_frequency)
 
+# Data Status
+st.sidebar.subheader("Data Status")
+status_container = st.sidebar.empty()
+
 # Main content area
 col1, col2 = st.columns([2, 1])
 
-with col2:
-    st.subheader("Data Status")
-    status_container = st.empty()
-
-with col1:
-    st.subheader("Controls")
-    
 # Create containers for dynamic content
 map_container = st.empty()
 plot_container = st.empty()
