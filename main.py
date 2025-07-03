@@ -172,7 +172,7 @@ def create_map_plot(df):
             center=dict(lat=center_lat, lon=center_lon),
             zoom=zoom
         ),
-        height=400,
+        height=800,
         title="Current Position and Track"
     )
     
@@ -210,7 +210,7 @@ available_params = ['temp', 'salinity', 'rhodamine', 'pH']
 selected_params = st.sidebar.multiselect(
     "Select parameters to plot",
     available_params,
-    default=['temp', 'salinity']
+    default=['rhodamine', 'pH']
 )
 
 # Resampling options
