@@ -103,24 +103,59 @@ def create_timeseries_plot(df, selected_params):
     return fig
 
 def create_map_plot(df):
-    """Create map showing latest positions"""
+    """Create map showing all positions and color-coded parameter values"""
     if df.empty:
         return go.Figure()
     
-    # Get the latest 100 points for the track
-    recent_data = df.tail(100)
-    
+    # Use all data points for the track
+    track_data = df
+
     fig = go.Figure()
     
-    # Add track line
-    fig.add_trace(go.Scattermap(
-        lat=recent_data['lat'],
-        lon=recent_data['lon'],
-        mode='lines',
-        line=dict(width=2, color='blue'),
-        name='Track',
-        hoverinfo='skip'
-    ))
+    # Color scale for the first selected parameter
+    if selected_params and selected_params[0] in track_data.columns:
+        color_param = selected_params[0]
+        color_vals = track_data[color_param]
+
+        # Compute quantiles for color scaling
+        qmin = color_vals.quantile(0.05)
+        qmax = color_vals.quantile(0.95)
+        # Avoid degenerate colorbar
+        if qmin == qmax:
+            qmin = color_vals.min()
+            qmax = color_vals.max()
+
+        scatter = go.Scattermap(
+            lat=track_data['lat'],
+            lon=track_data['lon'],
+            mode='markers+lines',
+            marker=dict(
+                size=10,
+                color=color_vals,
+                colorscale='Viridis',
+                cmin=qmin,
+                cmax=qmax,
+                colorbar=dict(title=color_param.capitalize()),
+                showscale=True
+            ),
+            name=f'Track ({color_param})',
+            text=[f"{color_param}: {v:.2f}" for v in color_vals],
+            hovertemplate=
+                'Lat: %{lat:.4f}<br>' +
+                'Lon: %{lon:.4f}<br>' +
+                f'{color_param}: %{{marker.color:.2f}}<extra></extra>'
+        )
+        fig.add_trace(scatter)
+    else:
+        # Add track line without color scale if no param selected
+        fig.add_trace(go.Scattermap(
+            lat=track_data['lat'],
+            lon=track_data['lon'],
+            mode='lines',
+            line=dict(width=2, color='blue'),
+            name='Track',
+            hoverinfo='skip'
+        ))
     
     # Add latest position
     if not df.empty:
@@ -140,18 +175,17 @@ def create_map_plot(df):
         ))
     
     # Calculate map extent (bounding box)
-    if not recent_data.empty:
-        min_lat = recent_data['lat'].min()
-        max_lat = recent_data['lat'].max()
-        min_lon = recent_data['lon'].min()
-        max_lon = recent_data['lon'].max()
+    if not track_data.empty:
+        min_lat = track_data['lat'].min()
+        max_lat = track_data['lat'].max()
+        min_lon = track_data['lon'].min()
+        max_lon = track_data['lon'].max()
         center_lat = (min_lat + max_lat) / 2
         center_lon = (min_lon + max_lon) / 2
         # Estimate zoom level based on extent (simple heuristic)
         lat_range = max_lat - min_lat
         lon_range = max_lon - min_lon
         max_range = max(lat_range, lon_range)
-        # The following zoom formula is a rough approximation for Mapbox
         if max_range < 0.002:
             zoom = 15
         elif max_range < 0.01:
@@ -168,7 +202,7 @@ def create_map_plot(df):
 
     fig.update_layout(
         map=dict(
-            style="open-street-map",
+            style="dark",
             center=dict(lat=center_lat, lon=center_lon),
             zoom=zoom
         ),

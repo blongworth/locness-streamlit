@@ -44,7 +44,9 @@ def create_sample_database(db_path='oceanographic_data.db', sample_frequency_hz=
             lon = base_lon + np.cos(i * 0.01) * 0.1 + np.random.normal(0, 0.01)
             temp = 15 + 5 * np.sin(i * 0.02) + np.random.normal(0, 0.5)
             salinity = 35 + 2 * np.sin(i * 0.015) + np.random.normal(0, 0.2)
-            rhodamine = max(0, 10 + 5 * np.sin(i * 0.03) + np.random.normal(0, 1))
+            # Simulate rhodamine as a left-tailed distribution: 95% in 0-5, range 0-500
+            # Use an exponential distribution and clip to 500
+            rhodamine = min(500, np.random.exponential(scale=1.25))
             ph = 8.1 + 0.3 * np.sin(i * 0.025) + np.random.normal(0, 0.05)
             sample_data.append((timestamp, lat, lon, temp, salinity, rhodamine, ph))
         cursor.executemany('''
