@@ -217,7 +217,7 @@ selected_params = st.sidebar.multiselect(
 st.sidebar.subheader("Data Resampling")
 resample_options = {
     'No resampling': None,
-    '10 seconds': '10S',
+    '10 seconds': '10s',
     '1 minute': '1min',
     '5 minutes': '5min',
     '15 minutes': '15min',
