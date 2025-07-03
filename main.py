@@ -63,7 +63,7 @@ def resample_data(df, resample_freq):
     return df.resample(resample_freq).agg(agg_dict).dropna()
 
 def create_timeseries_plot(df, selected_params):
-    """Create timeseries plot for selected parameters"""
+    """Create timeseries plot for selected parameters with range slider and selectors, but hide x axis labels"""
     if df.empty:
         return go.Figure()
     
@@ -93,12 +93,28 @@ def create_timeseries_plot(df, selected_params):
             )
     
     fig.update_layout(
-        height=200 * len(selected_params),
+        height=150 + 200 * len(selected_params),
         title="Time Series Data",
-        showlegend=False
+        showlegend=False,
     )
     
-    fig.update_xaxes(title_text="Time", row=len(selected_params), col=1)
+    # Update all x-axes for subplots, but hide axis labels
+    for i in range(1, len(selected_params) + 1):
+        fig.update_xaxes(
+            title_text="",  # Remove axis label
+            row=i, col=1,
+            rangeselector=dict(
+                buttons=list([
+                    dict(count=1, label="1h", step="hour", stepmode="backward"),
+                    dict(count=6, label="6h", step="hour", stepmode="backward"),
+                    dict(count=12, label="12h", step="hour", stepmode="backward"),
+                    dict(count=1, label="1d", step="day", stepmode="backward"),
+                    dict(step="all")
+                ])
+            ) if i == 1 else None,
+            rangeslider=dict(visible=(i == len(selected_params))),
+            type="date"
+        )
     
     return fig
 
@@ -262,7 +278,7 @@ resample_options = {
 selected_resample = st.sidebar.selectbox(
     "Resample to:",
     list(resample_options.keys()),
-    index=0
+    index=2
 )
 
 # Time range
