@@ -43,7 +43,7 @@ update_frequency = st.sidebar.slider(
 
 # Data selection
 st.sidebar.subheader("Data Selection")
-available_params = ['temp', 'salinity', 'rhodamine', 'ph']
+available_params = ['temp', 'salinity', 'rhodamine', 'ph', 'ph_ma']
 selected_params = st.sidebar.multiselect(
     "Select parameters to plot",
     available_params,

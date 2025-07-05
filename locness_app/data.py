@@ -1,4 +1,3 @@
-
 import duckdb
 import sqlite3
 import pandas as pd
@@ -31,6 +30,7 @@ class DataManager:
                     AVG(salinity) AS salinity,
                     AVG(rhodamine) AS rhodamine,
                     AVG(ph) AS ph
+                    AVG(ph_ma) AS ph_ma
                 FROM ({base_query})
                 GROUP BY 1
                 ORDER BY 1
@@ -56,7 +56,8 @@ class DataManager:
                         'temp': 'mean',
                         'salinity': 'mean',
                         'rhodamine': 'mean',
-                        'ph': 'mean'
+                        'ph': 'mean',
+                        'ph_ma': 'mean'
                     }
                     df = df.resample(resample_freq).agg(agg_dict).dropna()
             return df

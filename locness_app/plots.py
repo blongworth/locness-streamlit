@@ -54,7 +54,8 @@ def create_map_plot(df, selected_params):
                          'Lon: %{lon:.4f}<br>' +
                          f'Temp: {latest["temp"]:.1f}°C<br>' +
                          f'Salinity: {latest["salinity"]:.1f}<br>' +
-                         f'pH: {latest["ph"]:.2f}<extra></extra>'
+                         f'pH: {latest["ph"]:.2f}<extra></extra>' +
+                         f'Average pH: {latest["ph_ma"]:.2f}<extra></extra>'
         ))
     if not track_data.empty:
         min_lat = track_data['lat'].min()
