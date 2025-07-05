@@ -1,6 +1,6 @@
+
 import streamlit as st
 import duckdb
-from sample_data import add_sample_row
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -8,6 +8,16 @@ from plotly.subplots import make_subplots
 import time
 from datetime import datetime, timedelta
 import numpy as np
+from config import update_frequency as UPDATE_FREQUENCY, resample as RESAMPLE, file_path as FILE_PATH
+
+# Ensure correct types for config values
+if not isinstance(UPDATE_FREQUENCY, int):
+    try:
+        UPDATE_FREQUENCY = int(UPDATE_FREQUENCY)
+    except Exception:
+        UPDATE_FREQUENCY = 10
+if not isinstance(FILE_PATH, str):
+    FILE_PATH = str(FILE_PATH)
 
 # Page configuration
 st.set_page_config(
@@ -20,23 +30,21 @@ st.set_page_config(
 if 'last_update' not in st.session_state:
     st.session_state.last_update = datetime.now()
 if 'duckdb_conn' not in st.session_state:
-    st.session_state.duckdb_conn = duckdb.connect('oceanographic_data.duckdb')
+    st.session_state.duckdb_conn = duckdb.connect(FILE_PATH)
 if 'data_cache' not in st.session_state:
     st.session_state.data_cache = pd.DataFrame()
 
 def get_data_relation(time_cutoff=None, resample_freq=None):
-    """Return a DuckDB relation for the filtered and optionally resampled data."""
-    con = st.session_state.duckdb_conn
+    """Return a DuckDB query string and parameters for the filtered and optionally resampled data."""
     base_query = "SELECT * FROM sensor_data"
     params = []
     if time_cutoff:
         base_query += " WHERE timestamp >= ?"
         params.append(time_cutoff)
     base_query += " ORDER BY timestamp"
-    rel = con.execute(base_query, params).relation()
     if resample_freq:
         # DuckDB's time_bucket for resampling
-        rel = con.execute(f"""
+        query = f"""
             SELECT 
                 time_bucket('{resample_freq}', timestamp) AS timestamp,
                 AVG(lat) AS lat,
@@ -48,13 +56,16 @@ def get_data_relation(time_cutoff=None, resample_freq=None):
             FROM ({base_query})
             GROUP BY 1
             ORDER BY 1
-        """, params).relation()
-    return rel
+        """
+        return query, params
+    else:
+        return base_query, params
 
 def get_data_for_plotting(time_cutoff=None, resample_freq=None):
     """Get a Pandas DataFrame for plotting, keeping all filtering in DuckDB."""
-    rel = get_data_relation(time_cutoff, resample_freq)
-    df = rel.df()
+    con = st.session_state.duckdb_conn
+    query, params = get_data_relation(time_cutoff, resample_freq)
+    df = con.execute(query, params).df()
     if not df.empty:
         df['timestamp'] = pd.to_datetime(df['timestamp'])
         df.set_index('timestamp', inplace=True)
@@ -208,19 +219,12 @@ def create_map_plot(df):
 # Sidebar controls
 st.sidebar.header("Configuration")
 
-# Add a new sample row at 1Hz (if enabled)
-st.sidebar.subheader("Sample Data Generation")
-enable_live_sample = st.sidebar.checkbox("Add new sample data at 1Hz (simulated)", value=False)
-if enable_live_sample:
-    add_sample_row()
-
-
 # Update frequency
 update_frequency = st.sidebar.slider(
     "Update Frequency (seconds)",
     min_value=1,
     max_value=60,
-    value=10,
+    value=UPDATE_FREQUENCY,
     help="How often to check for new data"
 )
 
@@ -244,10 +248,11 @@ resample_options = {
     '1 hour': '1h',
     '6 hours': '6h'
 }
+default_resample_index = list(resample_options.values()).index(RESAMPLE) if RESAMPLE in resample_options.values() else 2
 selected_resample = st.sidebar.selectbox(
     "Resample to:",
     list(resample_options.keys()),
-    index=2
+    index=default_resample_index
 )
 
 # Time range

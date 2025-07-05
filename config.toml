@@ -1,0 +1,10 @@
+# config.toml for Oceanographic Data Visualizer
+
+file_path = "/Users/brett/Library/CloudStorage/GoogleDrive-blongworth@whoi.edu/Shared drives/locness/mydata.duckdb"
+
+# update frequency in seconds
+update_frequency = 10
+
+# resample options: "10s", "1min", "5min", "15min", "1h", "6h", "None"
+resample = "1min"
+
