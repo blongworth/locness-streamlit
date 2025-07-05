@@ -1,6 +1,6 @@
 # config.toml for Oceanographic Data Visualizer
 
-file_path = "/Users/brett/Library/CloudStorage/GoogleDrive-blongworth@whoi.edu/Shared drives/locness/mydata.duckdb"
+file_path = "/Users/brett/Library/CloudStorage/GoogleDrive-blongworth@whoi.edu/Shared drives/locness/fake-data.duckdb"
 
 # update frequency in seconds
 update_frequency = 10
