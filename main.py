@@ -5,9 +5,21 @@ from locness_app.config import update_frequency as UPDATE_FREQUENCY, resample as
 from locness_app.data import DataManager
 from locness_app.plots import create_timeseries_plot, create_map_plot
 
+# TODO: automatically resample if plotting more than MAX_POINTS
+# TODO: add more error handling for database connections and queries
+# TODO: incremental automatic update
+# TODO: threshold exceeded colors
+# TODO: threshold exceeded notifications
+# TODO: threshold exeeded timing
+# TODO: link plot and map for data selection by area or time
+# TODO: add csv export
+# TODO: add sensor diagnostics (if using primary sqlite database)
+# TODO: add drifters
+# TODO: add more vis: ph vs rhodamine, salinity vs temperature, etc.
+
 # Page configuration
 st.set_page_config(
-    page_title="Oceanographic Data Visualizer",
+    page_title="LOCNESS Underway Dashboard",
     page_icon="🌊",
     layout="wide"
 )
