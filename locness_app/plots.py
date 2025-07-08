@@ -1,3 +1,7 @@
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+
 def create_map_plot(df, selected_params):
     if df.empty:
         return go.Figure()
@@ -90,11 +94,6 @@ def create_map_plot(df, selected_params):
         title="Current Position and Track"
     )
     return fig
-import streamlit as st
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
-import pandas as pd
 
 def create_timeseries_plot(df, selected_params):
     if df.empty:

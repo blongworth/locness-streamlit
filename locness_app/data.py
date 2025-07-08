@@ -1,8 +1,6 @@
 import duckdb
 import sqlite3
 import pandas as pd
-from datetime import datetime
-import os
 
 class DataManager:
     def __init__(self, db_path):
@@ -11,7 +9,7 @@ class DataManager:
         if not self.is_sqlite:
             self.conn = duckdb.connect(db_path)
         else:
-            self.conn = None  # Will connect as needed
+            self.conn = sqlite3.connect(db_path)
 
     def get_data_relation(self, time_cutoff=None, resample_freq=None):
         base_query = "SELECT * FROM sensor_data"
@@ -50,20 +48,12 @@ class DataManager:
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
                 df.set_index('timestamp', inplace=True)
                 if resample_freq:
-                    agg_dict = {
-                        'lat': 'mean',
-                        'lon': 'mean',
-                        'temp': 'mean',
-                        'salinity': 'mean',
-                        'rhodamine': 'mean',
-                        'ph': 'mean',
-                        'ph_ma': 'mean'
-                    }
-                    df = df.resample(resample_freq).agg(agg_dict).dropna()
+                    columns_to_aggregate = ['lat', 'lon', 'temp', 'salinity', 'rhodamine', 'ph', 'ph_ma']
+                    df = df.resample(resample_freq).mean()[columns_to_aggregate].dropna()
             return df
         else:
             query, params = self.get_data_relation(time_cutoff, resample_freq)
-            df = self.conn.execute(query, params).df()
+            df = pd.read_sql_query(query, self.conn, params=params)
             if not df.empty:
                 df['timestamp'] = pd.to_datetime(df['timestamp'])
                 df.set_index('timestamp', inplace=True)
