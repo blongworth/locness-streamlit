@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from locness_app.config import resample as RESAMPLE, file_path as FILE_PATH
-from locness_app.data import get_data_for_plotting
+from locness_app.data import get_data_for_plotting, get_total_records
 from locness_app.plots import create_timeseries_plot, create_map_plot
 
 # TODO: automatically resample if plotting more than MAX_POINTS
@@ -78,16 +78,21 @@ map_container = st.empty()
 plot_container = st.empty()
 stats_container = st.empty()
 
-df = get_data_for_plotting(db_path=FILE_PATH, time_cutoff=None, resample_freq=RESAMPLE)
+# Update the data query based on user selections
+time_cutoff = datetime.now() - timedelta(hours=time_range_hours)
+df = get_data_for_plotting(db_path=FILE_PATH, time_cutoff=time_cutoff, resample_freq=resample_options[selected_resample])
 
 last_update = datetime.now()
 
+# Add total number of records in the data source
+total_records = get_total_records(db_path=FILE_PATH)
 # Update status
 with status_container:
     if not df.empty:
         st.success(f"✅ Data loaded: {len(df)} records")
         st.markdown(
             f"✅ Data loaded: {len(df)} records  \n"
+            f"**Total records in data source:** {total_records}  \n"
             f"**Last update:** {last_update.strftime('%H:%M:%S')}  \n"
             f"**Latest data:** {df.index[-1].strftime('%H:%M:%S')}  \n"
         )
