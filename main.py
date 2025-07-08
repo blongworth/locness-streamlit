@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-from locness_app.config import update_frequency as UPDATE_FREQUENCY, resample as RESAMPLE, file_path as FILE_PATH
+from locness_app.config import resample as RESAMPLE, file_path as FILE_PATH
 from locness_app.data import DataManager
 from locness_app.plots import create_timeseries_plot, create_map_plot
 
@@ -40,19 +40,6 @@ def get_data_for_plotting(time_cutoff=None, resample_freq=None):
 # Sidebar controls
 st.sidebar.header("Configuration")
 
-# Update frequency
-try:
-    update_frequency = int(UPDATE_FREQUENCY)
-except Exception:
-    update_frequency = 10
-update_frequency = st.sidebar.slider(
-    "Update Frequency (seconds)",
-    min_value=1,
-    max_value=60,
-    value=update_frequency,
-    help="How often to check for new data"
-)
-
 # Data selection
 st.sidebar.subheader("Data Selection")
 available_params = ['temp', 'salinity', 'rhodamine', 'ph', 'ph_ma']
@@ -89,13 +76,6 @@ time_range_hours = st.sidebar.slider(
     value=24
 )
 
-# Auto-refresh toggle
-auto_refresh = st.sidebar.checkbox("Auto-refresh", value=True)
-
-# Manual refresh button
-if st.sidebar.button("Refresh Now"):
-    st.session_state.last_update = datetime.now() - timedelta(seconds=update_frequency)
-
 # Data Status
 st.sidebar.subheader("Data Status")
 status_container = st.sidebar.empty()
@@ -108,23 +88,13 @@ map_container = st.empty()
 plot_container = st.empty()
 stats_container = st.empty()
 
-# Initialize or update data
-time_since_update = (datetime.now() - st.session_state.last_update).total_seconds()
+if st.session_state.data_cache.empty:
+    cutoff_time = datetime.now() - timedelta(hours=time_range_hours)
+    resample_freq = resample_options[selected_resample]
+    df = get_data_for_plotting(cutoff_time, resample_freq)
+    st.session_state.data_cache = df
 
-if auto_refresh and time_since_update >= update_frequency:
-    cutoff_time = datetime.now() - timedelta(hours=time_range_hours)
-    resample_freq = resample_options[selected_resample]
-    df = get_data_for_plotting(cutoff_time, resample_freq)
-    st.session_state.data_cache = df
-    st.session_state.last_update = datetime.now()
-    st.rerun()
-elif st.session_state.data_cache.empty:
-    cutoff_time = datetime.now() - timedelta(hours=time_range_hours)
-    resample_freq = resample_options[selected_resample]
-    df = get_data_for_plotting(cutoff_time, resample_freq)
-    st.session_state.data_cache = df
-else:
-    df = st.session_state.data_cache
+df = st.session_state.data_cache
 
 # Update status
 with status_container:
@@ -134,7 +104,6 @@ with status_container:
             f"✅ Data loaded: {len(df)} records  \n"
             f"**Last update:** {st.session_state.last_update.strftime('%H:%M:%S')}  \n"
             f"**Latest data:** {df.index[-1].strftime('%H:%M:%S')}  \n"
-            f"**Next update in:** {max(0, update_frequency - int((datetime.now() - st.session_state.last_update).total_seconds()))} seconds"
         )
     else:
         st.warning("⚠️ No data available")
