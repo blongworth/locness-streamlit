@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from locness_app.config import resample as RESAMPLE, file_path as FILE_PATH
-from locness_app.data import DataManager
+from locness_app.data import get_data_for_plotting
 from locness_app.plots import create_timeseries_plot, create_map_plot
 
 # TODO: automatically resample if plotting more than MAX_POINTS
@@ -24,16 +24,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Initialize session state
-if 'last_update' not in st.session_state:
-    st.session_state.last_update = datetime.now()
-if 'data_cache' not in st.session_state:
-    st.session_state.data_cache = pd.DataFrame()
-if 'data_manager' not in st.session_state:
-    st.session_state.data_manager = DataManager(FILE_PATH)
-
-def get_data_for_plotting(time_cutoff=None, resample_freq=None):
-    return st.session_state.data_manager.get_data_for_plotting(time_cutoff, resample_freq)
 
 # Streamlit UI
 
@@ -88,13 +78,9 @@ map_container = st.empty()
 plot_container = st.empty()
 stats_container = st.empty()
 
-if st.session_state.data_cache.empty:
-    cutoff_time = datetime.now() - timedelta(hours=time_range_hours)
-    resample_freq = resample_options[selected_resample]
-    df = get_data_for_plotting(cutoff_time, resample_freq)
-    st.session_state.data_cache = df
+df = get_data_for_plotting(db_path=FILE_PATH, time_cutoff=None, resample_freq=RESAMPLE)
 
-df = st.session_state.data_cache
+last_update = datetime.now()
 
 # Update status
 with status_container:
@@ -102,7 +88,7 @@ with status_container:
         st.success(f"✅ Data loaded: {len(df)} records")
         st.markdown(
             f"✅ Data loaded: {len(df)} records  \n"
-            f"**Last update:** {st.session_state.last_update.strftime('%H:%M:%S')}  \n"
+            f"**Last update:** {last_update.strftime('%H:%M:%S')}  \n"
             f"**Latest data:** {df.index[-1].strftime('%H:%M:%S')}  \n"
         )
     else:
