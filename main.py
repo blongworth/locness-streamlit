@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
-from locness_app.config import resample as RESAMPLE, file_path as FILE_PATH
+from locness_app.config import resample as RESAMPLE, file_path as FILE_PATH, db_table as DB_TABLE
 from locness_app.data import get_data_for_plotting, get_total_records
 from locness_app.plots import create_timeseries_plot, create_map_plot
 
@@ -23,7 +23,6 @@ st.set_page_config(
     page_icon="🌊",
     layout="wide"
 )
-
 
 # Streamlit UI
 
@@ -80,12 +79,12 @@ stats_container = st.empty()
 
 # Update the data query based on user selections
 time_cutoff = datetime.now() - timedelta(hours=time_range_hours)
-df = get_data_for_plotting(db_path=FILE_PATH, time_cutoff=time_cutoff, resample_freq=resample_options[selected_resample])
+df = get_data_for_plotting(db_path=FILE_PATH, db_table=DB_TABLE, time_cutoff=time_cutoff, resample_freq=resample_options[selected_resample])
 
 last_update = datetime.now()
 
 # Add total number of records in the data source
-total_records = get_total_records(db_path=FILE_PATH)
+total_records = get_total_records(db_path=FILE_PATH, db_table=DB_TABLE)
 # Update status
 with status_container:
     if not df.empty:

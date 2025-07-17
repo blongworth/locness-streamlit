@@ -2,7 +2,7 @@
 
 #file_path = "/Users/brett/Library/CloudStorage/GoogleDrive-blongworth@whoi.edu/Shared drives/locness/fake-data.duckdb"
 file_path = "/Users/brett/Library/CloudStorage/GoogleDrive-blongworth@whoi.edu/Shared drives/locness/fake-data.sqlite"
-db_table = "underway_summary"
+db_table = "sensor_data"
 
 # update frequency in seconds
 update_frequency = 10
