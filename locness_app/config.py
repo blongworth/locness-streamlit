@@ -31,3 +31,4 @@ def get_config_value(key):
 update_frequency = get_config_value("update_frequency")
 resample = get_config_value("resample")
 file_path = get_config_value("file_path")
+db_table = get_config_value("db_table")
