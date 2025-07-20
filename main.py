@@ -1,13 +1,16 @@
 import streamlit as st
+from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 from datetime import datetime, timedelta
-from locness_app.config import resample as RESAMPLE, file_path as FILE_PATH, db_table as DB_TABLE
+from locness_app.config import update_frequency, resample as RESAMPLE, file_path as FILE_PATH, db_table as DB_TABLE
 from locness_app.data import get_data_for_plotting, get_total_records
 from locness_app.plots import create_timeseries_plot, create_map_plot
 
-# TODO: automatically resample if plotting more than MAX_POINTS
-# TODO: add more error handling for database connections and queries
+
 # TODO: incremental automatic update
+# TODO: automatically resample if plotting more than MAX_POINTS
+# TODO: deployment view
+# TODO: add more error handling for database connections and queries
 # TODO: threshold exceeded colors
 # TODO: threshold exceeded notifications
 # TODO: threshold exeeded timing
@@ -16,6 +19,9 @@ from locness_app.plots import create_timeseries_plot, create_map_plot
 # TODO: add sensor diagnostics (if using primary sqlite database)
 # TODO: add drifters
 # TODO: add more vis: ph vs rhodamine, salinity vs temperature, etc.
+
+# Streamlit auto-refresh configuration
+refresh_count = st_autorefresh(interval=update_frequency * 1000, key="data_refresh")
 
 # Page configuration
 st.set_page_config(
@@ -31,11 +37,11 @@ st.sidebar.header("Configuration")
 
 # Data selection
 st.sidebar.subheader("Data Selection")
-available_params = ['temp', 'salinity', 'rhodamine', 'ph', 'ph_ma']
+available_params = ['temp', 'salinity', 'rho_ppb', 'ph_corrected', 'ph_corrected_ma']
 selected_params = st.sidebar.multiselect(
     "Select parameters to plot",
     available_params,
-    default=['rhodamine', 'ph']
+    default=['rho_ppb', 'ph_corrected']
 )
 
 # Resampling options

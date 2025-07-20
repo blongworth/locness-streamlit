@@ -16,8 +16,8 @@ def create_map_plot(df, selected_params):
             qmin = color_vals.min()
             qmax = color_vals.max()
         scatter = go.Scattermap(
-            lat=track_data['lat'],
-            lon=track_data['lon'],
+            lat=track_data['latitude'],
+            lon=track_data['longitude'],
             mode='markers+lines',
             marker=dict(
                 size=10,
@@ -31,15 +31,15 @@ def create_map_plot(df, selected_params):
             name=f'Track ({color_param})',
             text=[f"{color_param}: {v:.2f}" for v in color_vals],
             hovertemplate=
-                'Lat: %{lat:.4f}<br>' +
-                'Lon: %{lon:.4f}<br>' +
+                'Lat: %{latitude:.4f}<br>' +
+                'Lon: %{longitude:.4f}<br>' +
                 f'{color_param}: %{{marker.color:.2f}}<extra></extra>'
         )
         fig.add_trace(scatter)
     else:
         fig.add_trace(go.Scattermap(
-            lat=track_data['lat'],
-            lon=track_data['lon'],
+            lat=track_data['latitude'],
+            lon=track_data['longitude'],
             mode='lines',
             line=dict(width=2, color='blue'),
             name='Track',
@@ -48,24 +48,24 @@ def create_map_plot(df, selected_params):
     if not df.empty:
         latest = df.iloc[-1]
         fig.add_trace(go.Scattermap(
-            lat=[latest['lat']],
-            lon=[latest['lon']],
+            lat=[latest['latitude']],
+            lon=[latest['longitude']],
             mode='markers',
             marker=dict(size=15, color='red'),
             name='Current Position',
             hovertemplate='<b>Current Position</b><br>' +
-                         'Lat: %{lat:.4f}<br>' +
-                         'Lon: %{lon:.4f}<br>' +
+                         'Lat: %{latitude:.4f}<br>' +
+                         'Lon: %{longitude:.4f}<br>' +
                          f'Temp: {latest["temp"]:.1f}°C<br>' +
                          f'Salinity: {latest["salinity"]:.1f}<br>' +
-                         f'pH: {latest["ph"]:.2f}<extra></extra>' +
-                         f'Average pH: {latest["ph_ma"]:.2f}<extra></extra>'
+                         f'pH: {latest["ph_corrected"]:.2f}<extra></extra>' +
+                         f'Average pH: {latest["ph_corrected_ma"]:.2f}<extra></extra>'
         ))
     if not track_data.empty:
-        min_lat = track_data['lat'].min()
-        max_lat = track_data['lat'].max()
-        min_lon = track_data['lon'].min()
-        max_lon = track_data['lon'].max()
+        min_lat = track_data['latitude'].min()
+        max_lat = track_data['latitude'].max()
+        min_lon = track_data['longitude'].min()
+        max_lon = track_data['longitude'].max()
         center_lat = (min_lat + max_lat) / 2
         center_lon = (min_lon + max_lon) / 2
         lat_range = max_lat - min_lat
