@@ -21,7 +21,13 @@ from locness_app.plots import create_timeseries_plot, create_map_plot
 # TODO: add more vis: ph vs rhodamine, salinity vs temperature, etc.
 
 # Streamlit auto-refresh configuration
-refresh_count = st_autorefresh(interval=update_frequency * 1000, key="data_refresh")
+# Autorefresh toggle
+autorefresh_enabled = st.sidebar.checkbox("Enable auto-refresh", value=False)
+if autorefresh_enabled:
+    refresh_count = st_autorefresh(interval=update_frequency * 1000, key="data_refresh")
+
+# Manual refresh button
+st.sidebar.button("Refresh now")
 
 # Page configuration
 st.set_page_config(
