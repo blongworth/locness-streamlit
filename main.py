@@ -85,7 +85,7 @@ status_container = st.sidebar.empty()
 col1, col2 = st.columns([2, 1])
 
 # Tabs for main content
-tab_main, tab_deployment = st.tabs(["Dashboard", "Deployment"])
+tab_deployment , tab_main= st.tabs(["Deployment", "Dashboard"])
 
 # Create containers for dynamic content
 map_container = st.empty()
