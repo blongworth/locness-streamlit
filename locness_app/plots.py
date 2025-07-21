@@ -91,7 +91,6 @@ def create_map_plot(df, selected_params):
             zoom=zoom
         ),
         height=800,
-        title="Current Position and Track"
     )
     return fig
 
@@ -121,7 +120,6 @@ def create_timeseries_plot(df, selected_params):
             )
     fig.update_layout(
         height=150 + 200 * len(selected_params),
-        title="Time Series Data",
         showlegend=False,
     )
     for i in range(1, len(selected_params) + 1):
@@ -140,4 +138,38 @@ def create_timeseries_plot(df, selected_params):
             rangeslider=dict(visible=(i == len(selected_params))),
             type="date"
         )
+    return fig
+
+def create_ph_timeseries_plot(df):
+    if df.empty:
+        return go.Figure()
+    colors = px.colors.qualitative.Set1
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df['ph_corrected_ma'],
+            name='pH moving average',
+            line=dict(color=colors[0]),
+            mode='lines+markers',
+            marker=dict(size=3)
+        ),
+    )
+    fig.update_layout(
+        height=350,
+        showlegend=False,
+    )
+    fig.update_xaxes(
+        title_text="",
+        rangeselector=dict(
+            buttons=list([
+                dict(count=1, label="1h", step="hour", stepmode="backward"),
+                dict(count=6, label="6h", step="hour", stepmode="backward"),
+                dict(count=12, label="12h", step="hour", stepmode="backward"),
+                dict(count=1, label="1d", step="day", stepmode="backward"),
+                dict(step="all")
+            ])
+        ),
+        type="date"
+    )
     return fig

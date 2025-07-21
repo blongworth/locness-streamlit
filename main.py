@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from locness_app.config import update_frequency, resample as RESAMPLE, file_path as FILE_PATH, db_table as DB_TABLE
 from locness_app.data import get_data_for_plotting, get_total_records
-from locness_app.plots import create_timeseries_plot, create_map_plot
+from locness_app.plots import create_timeseries_plot, create_ph_timeseries_plot, create_map_plot
 
 
 # TODO: incremental automatic update
@@ -84,6 +84,9 @@ status_container = st.sidebar.empty()
 # Main content area
 col1, col2 = st.columns([2, 1])
 
+# Tabs for main content
+tab_main, tab_deployment = st.tabs(["Dashboard", "pH Corrected MA Analysis"])
+
 # Create containers for dynamic content
 map_container = st.empty()
 plot_container = st.empty()
@@ -110,29 +113,60 @@ with status_container:
     else:
         st.warning("⚠️ No data available")
 
-# Display visualizations
-if not df.empty and selected_params:
-    with map_container:
-        st.plotly_chart(create_map_plot(df, selected_params), use_container_width=True)
-    with plot_container:
-        st.plotly_chart(create_timeseries_plot(df, selected_params), use_container_width=True)
-    with stats_container:
-        st.subheader("Current Statistics")
+with tab_main:
+    # Display visualizations
+    if not df.empty and selected_params:
+        with map_container:
+            st.plotly_chart(create_map_plot(df, selected_params), use_container_width=True)
+        with plot_container:
+            st.plotly_chart(create_timeseries_plot(df, selected_params), use_container_width=True)
+        with stats_container:
+            st.subheader("Current Statistics")
+            if not df.empty:
+                latest_data = df.iloc[-1]
+                cols = st.columns(len(selected_params))
+                for i, param in enumerate(selected_params):
+                    with cols[i]:
+                        if param in df.columns:
+                            value = latest_data[param]
+                            mean_val = df[param].mean()
+                            st.metric(
+                                label=param.capitalize(),
+                                value=f"{value:.2f}",
+                                delta=f"{value - mean_val:.2f} vs avg"
+                            )
+    elif not selected_params:
+        st.info("Please select at least one parameter to visualize from the sidebar.")
+
+with tab_deployment:
+
+    # Time series plot for pH Corrected MA
+    ph_timeseries_col, ph_indicator_col = st.columns([3, 1])
+
+    with ph_timeseries_col:
         if not df.empty:
-            latest_data = df.iloc[-1]
-            cols = st.columns(len(selected_params))
-            for i, param in enumerate(selected_params):
-                with cols[i]:
-                    if param in df.columns:
-                        value = latest_data[param]
-                        mean_val = df[param].mean()
-                        st.metric(
-                            label=param.capitalize(),
-                            value=f"{value:.2f}",
-                            delta=f"{value - mean_val:.2f} vs avg"
-                        )
-elif not selected_params:
-    st.info("Please select at least one parameter to visualize from the sidebar.")
+            st.plotly_chart(create_ph_timeseries_plot(df), use_container_width=True)
+        else:
+            st.warning("⚠️ No data available for pH Corrected MA")
+
+    with ph_indicator_col:
+        st.subheader("Current pH Corrected MA")
+        if not df.empty and "ph_corrected_ma" in df.columns:
+            latest_ph_corrected_ma = df.iloc[-1]["ph_corrected_ma"]
+            mean_ph_corrected_ma = df["ph_corrected_ma"].mean()
+            st.metric(
+                label="pH Corrected MA",
+                value=f"{latest_ph_corrected_ma:.2f}",
+                delta=f"{latest_ph_corrected_ma - mean_ph_corrected_ma:.2f} vs avg"
+            )
+        else:
+            st.info("No data available for pH Corrected MA")
+
+    # Map plot for pH Corrected MA
+    if not df.empty:
+        st.plotly_chart(create_map_plot(df, ["ph_corrected_ma"]), use_container_width=True)
+    else:
+        st.warning("⚠️ No data available for pH Corrected MA")
 
 # Footer
 st.markdown("---")
