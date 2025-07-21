@@ -90,7 +90,8 @@ def create_map_plot(df, selected_params):
             center=dict(lat=center_lat, lon=center_lon),
             zoom=zoom
         ),
-        height=800,
+        height=650,
+        margin=dict(t=10, b=10, l=10, r=10)  # Adjust margins to reduce whitespace
     )
     return fig
 
@@ -121,6 +122,7 @@ def create_timeseries_plot(df, selected_params):
     fig.update_layout(
         height=150 + 200 * len(selected_params),
         showlegend=False,
+        margin=dict(t=10, b=10, l=10, r=10)  # Adjust margins to reduce whitespace
     )
     for i in range(1, len(selected_params) + 1):
         fig.update_xaxes(
@@ -156,8 +158,9 @@ def create_ph_timeseries_plot(df):
         ),
     )
     fig.update_layout(
-        height=350,
+        height=250,
         showlegend=False,
+        margin=dict(t=10, b=10, l=10, r=10)  # Adjust margins to reduce whitespace
     )
     fig.update_xaxes(
         title_text="",

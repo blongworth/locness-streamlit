@@ -85,7 +85,7 @@ status_container = st.sidebar.empty()
 col1, col2 = st.columns([2, 1])
 
 # Tabs for main content
-tab_main, tab_deployment = st.tabs(["Dashboard", "pH Corrected MA Analysis"])
+tab_main, tab_deployment = st.tabs(["Dashboard", "Deployment"])
 
 # Create containers for dynamic content
 map_container = st.empty()
@@ -116,25 +116,22 @@ with status_container:
 with tab_main:
     # Display visualizations
     if not df.empty and selected_params:
-        with map_container:
-            st.plotly_chart(create_map_plot(df, selected_params), use_container_width=True)
-        with plot_container:
-            st.plotly_chart(create_timeseries_plot(df, selected_params), use_container_width=True)
-        with stats_container:
-            st.subheader("Current Statistics")
-            if not df.empty:
-                latest_data = df.iloc[-1]
-                cols = st.columns(len(selected_params))
-                for i, param in enumerate(selected_params):
-                    with cols[i]:
-                        if param in df.columns:
-                            value = latest_data[param]
-                            mean_val = df[param].mean()
-                            st.metric(
-                                label=param.capitalize(),
-                                value=f"{value:.2f}",
-                                delta=f"{value - mean_val:.2f} vs avg"
-                            )
+        st.plotly_chart(create_map_plot(df, selected_params), use_container_width=True)
+        st.plotly_chart(create_timeseries_plot(df, selected_params), use_container_width=True)
+        st.subheader("Current Statistics")
+        if not df.empty:
+            latest_data = df.iloc[-1]
+            cols = st.columns(len(selected_params))
+            for i, param in enumerate(selected_params):
+                with cols[i]:
+                    if param in df.columns:
+                        value = latest_data[param]
+                        mean_val = df[param].mean()
+                        st.metric(
+                            label=param.capitalize(),
+                            value=f"{value:.2f}",
+                            delta=f"{value - mean_val:.2f} vs avg"
+                        )
     elif not selected_params:
         st.info("Please select at least one parameter to visualize from the sidebar.")
 
@@ -150,14 +147,14 @@ with tab_deployment:
             st.warning("⚠️ No data available for pH Corrected MA")
 
     with ph_indicator_col:
-        st.subheader("Current pH Corrected MA")
         if not df.empty and "ph_corrected_ma" in df.columns:
             latest_ph_corrected_ma = df.iloc[-1]["ph_corrected_ma"]
             mean_ph_corrected_ma = df["ph_corrected_ma"].mean()
             st.metric(
-                label="pH Corrected MA",
+                label="pH moving average",
                 value=f"{latest_ph_corrected_ma:.2f}",
-                delta=f"{latest_ph_corrected_ma - mean_ph_corrected_ma:.2f} vs avg"
+                delta=f"{latest_ph_corrected_ma - mean_ph_corrected_ma:.2f} vs avg",
+                delta_color="inverse"
             )
         else:
             st.info("No data available for pH Corrected MA")
